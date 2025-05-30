@@ -1,0 +1,52 @@
+name: Sync Feature to Security & Run Security Scan
+
+on:
+  push:
+    branches:
+      - feature
+
+jobs:
+  copy-branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "harsh-kumar-sinha-427742"
+          git config --global user.email "sinhaharshkumar2001@gmail.com"
+
+      - name: Create and push security branch
+        run: |
+          git checkout feature
+          git branch -f security
+          git push origin security --force
+
+  security-scan:
+    needs: copy-branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit scan
+        run: bandit -r . -f txt -o bandit_report.txt
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: bandit-report
+          path: bandit_report.txt
