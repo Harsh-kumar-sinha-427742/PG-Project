@@ -1,0 +1,31 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - 'feature/*'  # Trigger on pushes to any feature branch
+  pull_request:
+    branches:
+      - security
+      - main
+
+jobs:
+  merge_to_security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git user
+        run: |
+          git config user.name "harsh-kumar-sinha-427742"
+          git config user.email "sinhaharshkumar2001@gmail.com"
+
+      - name: Merge feature branch into security
+        run: |
+          git fetch origin
+          git checkout security
+          git merge --no-ff ${{ github.ref_name }} -m "CI: Auto-merge '${{ github.ref_name }}' into security"
+          git push origin security
